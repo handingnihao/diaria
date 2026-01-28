@@ -2,7 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"io/fs"
 	"log"
+	"net/http"
+	"path/filepath"
+	"strings"
 
 	"github.com/songtianlun/diaria/internal/api"
 	_ "github.com/songtianlun/diaria/internal/migrations"
@@ -14,6 +19,74 @@ import (
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 	"github.com/spf13/cobra"
 )
+
+// serveSPA serves the SPA with fallback to index.html for client-side routing
+func serveSPA(c echo.Context, fsys fs.FS) error {
+	path := c.Request().URL.Path
+
+	// Skip API routes and PocketBase admin routes
+	if strings.HasPrefix(path, "/api/") || strings.HasPrefix(path, "/_/") {
+		return echo.ErrNotFound
+	}
+
+	// Clean the path
+	path = filepath.Clean(path)
+	if path == "." {
+		path = "/"
+	}
+
+	// Remove leading slash for fs.FS
+	if strings.HasPrefix(path, "/") {
+		path = path[1:]
+	}
+
+	// Try to serve the requested file
+	file, err := fsys.Open(path)
+	if err == nil {
+		defer file.Close()
+
+		// Get file info to check if it's a directory
+		stat, err := file.Stat()
+		if err != nil {
+			return err
+		}
+
+		// If it's a directory, try index.html
+		if stat.IsDir() {
+			indexPath := filepath.Join(path, "index.html")
+			file.Close()
+			file, err = fsys.Open(indexPath)
+			if err == nil {
+				defer file.Close()
+				stat, err = file.Stat()
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		// Serve the file
+		if err == nil {
+			http.ServeContent(c.Response(), c.Request(), stat.Name(), stat.ModTime(), file.(io.ReadSeeker))
+			return nil
+		}
+	}
+
+	// If file not found, serve index.html for SPA routing
+	indexFile, err := fsys.Open("index.html")
+	if err != nil {
+		return echo.ErrNotFound
+	}
+	defer indexFile.Close()
+
+	stat, err := indexFile.Stat()
+	if err != nil {
+		return err
+	}
+
+	http.ServeContent(c.Response(), c.Request(), "index.html", stat.ModTime(), indexFile.(io.ReadSeeker))
+	return nil
+}
 
 func main() {
 	app := pocketbase.New()
@@ -37,14 +110,15 @@ func main() {
 		// Register API routes
 		api.RegisterDiaryRoutes(app, e)
 
-		// Serve embedded frontend static files
+		// Serve embedded frontend static files with SPA fallback
 		staticFS, err := static.GetFS()
 		if err != nil {
 			log.Printf("Warning: Failed to get embedded static files: %v", err)
 		} else {
-			// Serve static files from embedded FS
-			// Use a catch-all route for SPA support
-			e.Router.GET("/*", echo.StaticDirectoryHandler(staticFS, false))
+			// Add SPA handler for all routes (with lowest priority)
+			e.Router.GET("/*", func(c echo.Context) error {
+				return serveSPA(c, staticFS)
+			})
 		}
 
 		return nil
