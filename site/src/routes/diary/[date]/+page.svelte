@@ -122,56 +122,58 @@
 		<!-- Compact Glass Header -->
 		<header class="glass border-b border-border/50">
 		<div class="max-w-6xl mx-auto px-4 py-2">
-			<div class="flex items-center justify-between gap-4">
-				<!-- Navigation -->
-				<div class="flex items-center gap-1">
-					<button
-						on:click={goToPreviousDay}
-						disabled={loading}
-						class="p-1.5 hover:bg-muted/50 rounded-lg transition-all duration-200 disabled:opacity-50"
-						title="Previous day"
-					>
-						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-						</svg>
-					</button>
+			<div class="flex items-center justify-between">
+				<!-- Left: Brand -->
+				<h1 class="text-lg font-semibold text-foreground">Diaria</h1>
 
-					<button
-						on:click={goToNextDay}
-						disabled={loading || !canGoNext}
-						class="p-1.5 hover:bg-muted/50 rounded-lg transition-all duration-200 disabled:opacity-50"
-						title={canGoNext ? "Next day" : "Cannot go beyond today"}
-					>
-						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-						</svg>
-					</button>
+				<!-- Center: Date and Navigation -->
+				<div class="flex items-center gap-3">
+					<div class="flex items-center gap-1">
+						<button
+							on:click={goToPreviousDay}
+							disabled={loading}
+							class="p-1.5 hover:bg-muted/50 rounded-lg transition-all duration-200 disabled:opacity-50"
+							title="Previous day"
+						>
+							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+							</svg>
+						</button>
 
-					<button
-						on:click={goToCalendar}
-						disabled={loading}
-						class="p-1.5 hover:bg-muted/50 rounded-lg transition-all duration-200 disabled:opacity-50"
-						title="Calendar"
-					>
-						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-								d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-						</svg>
-					</button>
-				</div>
+						<button
+							on:click={goToNextDay}
+							disabled={loading || !canGoNext}
+							class="p-1.5 hover:bg-muted/50 rounded-lg transition-all duration-200 disabled:opacity-50"
+							title={canGoNext ? "Next day" : "Cannot go beyond today"}
+						>
+							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+							</svg>
+						</button>
 
-				<!-- Date Display -->
-				<div class="flex-1 text-center">
-					<h1 class="text-lg font-semibold text-foreground inline-flex items-center gap-2">
+						<button
+							on:click={goToCalendar}
+							disabled={loading}
+							class="p-1.5 hover:bg-muted/50 rounded-lg transition-all duration-200 disabled:opacity-50"
+							title="Calendar"
+						>
+							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+									d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+							</svg>
+						</button>
+					</div>
+
+					<div class="text-sm text-foreground">
 						{formatDisplayDate(date)}
-						<span class="text-xs text-muted-foreground font-normal">{getDayOfWeek(date)}</span>
+						<span class="text-xs text-muted-foreground font-normal ml-1">{getDayOfWeek(date)}</span>
 						{#if isToday(date)}
-							<span class="text-xs px-1.5 py-0.5 bg-primary/10 text-primary rounded-full">Today</span>
+							<span class="text-xs px-1.5 py-0.5 bg-primary/10 text-primary rounded-full ml-1">Today</span>
 						{/if}
-					</h1>
+					</div>
 				</div>
 
-				<!-- Actions -->
+				<!-- Right: Actions -->
 				<div class="flex items-center gap-2">
 					<!-- Mobile TOC Toggle -->
 					<button
